@@ -1,2 +1,2 @@
 # protoss
-protocol library to interact with smart contracts
+A library to support Ethereum and Cosmos SDK encoding from Rust or languages implementing C FFI
