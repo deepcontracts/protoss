@@ -26,3 +26,8 @@ rand = "0.8.5"
 tiny-keccak = "2.0.2"
 ibc-proto = "0.32.0"
 tiny-bip39 = "1.0.0" # maybe unnecessary (contained in ethers_signers, in use by cosmos)
+
+
+[dependencies.rand_core]
+version = "0.6"
+features = ["std"]
