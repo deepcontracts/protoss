@@ -48,6 +48,10 @@ pub fn cosmos_send(
     }.to_any().unwrap()
   ], memo, timeout_height);
 
+  // let by = tx_body.clone().into_bytes().unwrap();
+  
+  // eprintln!(">>> {by:?}");
+
   let auth_info = SignerInfo::single_direct(Some(public_key), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
   let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id.parse().unwrap(), account_number).unwrap();  
 
@@ -622,7 +626,7 @@ pub extern "C" fn protoss_cosmos_tx(
   let signing_key = SigningKey::new(unsafe { Box::from_raw(signing_key) });
   let fee_amount = unsafe { CStr::from_ptr(fee_amount).to_string_lossy().into_owned() };
   let fee_denom = unsafe { CStr::from_ptr(fee_denom).to_string_lossy().into_owned() };
-  let body_bytes = unsafe { CStr::from_ptr(body_bytes).to_string_lossy().into_owned() };
+  let body_bytes = unsafe { CStr::from_ptr(body_bytes) };
   let chain_id = unsafe { CStr::from_ptr(chain_id).to_string_lossy().into_owned() };
   
   let amount = Coin {
@@ -632,9 +636,12 @@ pub extern "C" fn protoss_cosmos_tx(
   let sequence_number = nonce;
   let auth_info = SignerInfo::single_direct(Some(signing_key.public_key()), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
 
+  // let by = body_bytes.to_bytes();
+  // eprintln!(">>> {by:?}");
+
 
   let sign_doc = SignDoc{
-    body_bytes: body_bytes.into_bytes(),
+    body_bytes: body_bytes.to_bytes().to_vec(),
     auth_info_bytes:  auth_info.into_bytes().unwrap(),
     account_number,
     chain_id
@@ -642,7 +649,6 @@ pub extern "C" fn protoss_cosmos_tx(
   
   let buf = cosmj(sign_doc.sign(&signing_key).unwrap().to_bytes().unwrap()).unwrap();
   CString::new(buf).unwrap().into_raw()
-  
 }
 
 
