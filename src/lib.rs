@@ -509,14 +509,14 @@ pub extern "C" fn protoss_cosmos_send_phrase(
   amount: *const c_char,
   denom: *const c_char,
   // next_id: u64,
-  chain_id: u64
+  chain_id: *const c_char
 ) -> *const c_char {
   let phrase = unsafe { CStr::from_ptr(phrase).to_string_lossy().into_owned() };
   let addr_prefix = unsafe { CStr::from_ptr(addr_prefix).to_string_lossy().into_owned() };
   let to_address = unsafe { CStr::from_ptr(to_address).to_string_lossy().into_owned() };
   let amount = unsafe { CStr::from_ptr(amount).to_string_lossy().into_owned() };
   let denom = unsafe { CStr::from_ptr(denom).to_string_lossy().into_owned() };
-  eprintln!("received {} {}", phrase, nonce);
+  let chain_id = unsafe { CStr::from_ptr(chain_id).to_string_lossy().into_owned() };
 
   let gas =  100_000_000_000u64;
   let memo = "nomemo";
@@ -525,7 +525,7 @@ pub extern "C" fn protoss_cosmos_send_phrase(
   let signing_key = cosmos_phrase_wallet(phrase.as_str());
 
   let buf = cosmos_send(0,nonce, gas, timeout_height, memo,
-    &signing_key, addr_prefix.as_str(),to_address.as_str(), amount.as_str(), denom.as_str(), format!("{chain_id}").as_str()).unwrap();
+    &signing_key, addr_prefix.as_str(),to_address.as_str(), amount.as_str(), denom.as_str(), chain_id.as_str()).unwrap();
   CString::new(buf).unwrap().into_raw()
 }
 
