@@ -48,12 +48,9 @@ pub fn cosmos_send(
     }.to_any().unwrap()
   ], memo, timeout_height);
 
-  // let by = tx_body.clone().into_bytes().unwrap();
-  
-  // eprintln!(">>> {by:?}");
-
   let auth_info = SignerInfo::single_direct(Some(public_key), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
   let sign_doc = SignDoc::new(&tx_body, &auth_info, &chain_id.parse().unwrap(), account_number).unwrap();  
+  // eprintln!("{sign_doc:?}");
 
   cosmj(sign_doc.sign(&signing_key).unwrap().to_bytes().unwrap())
 }
@@ -285,7 +282,8 @@ pub fn cosmos_phrase_wallet(phrase : &str) -> SigningKey {
 }
 
 pub fn cosmos_sk_wallet(secret_key : &str) -> SigningKey {
-  cosmrs::crypto::secp256k1::SigningKey::from_slice(secret_key.as_bytes()).unwrap()
+  let sk = <Vec<u8>>::from_hex(secret_key).unwrap();
+  cosmrs::crypto::secp256k1::SigningKey::from_slice(sk.as_slice()).unwrap()
 }
 
 pub fn evm_abi(path: &str) -> Abi{
@@ -601,29 +599,32 @@ pub extern "C" fn protoss_cosmos_transfer_phrase(
 }
 
 #[no_mangle]
-pub extern "C" fn protoss_cosmos_new_account() -> *const k256::ecdsa::SigningKey {
-  &*Box::new(k256::ecdsa::SigningKey::random(&mut rand_core::OsRng))
+pub extern "C" fn protoss_cosmos_new_sk() -> *const c_char{
+  let sk =format!("{:x}", k256::ecdsa::SigningKey::random(&mut rand_core::OsRng).to_bytes());
+  CString::new(sk.as_bytes()).unwrap().into_raw()
 }
 
 #[no_mangle]
-pub extern "C" fn protoss_cosmos_account_address(signing_key: *mut k256::ecdsa::SigningKey, addr_prefix: *const c_char) -> *const c_char {
+pub extern "C" fn protoss_cosmos_sk_address(sk: *const c_char, addr_prefix: *const c_char) -> *const c_char {
+  let sk = unsafe { CStr::from_ptr(sk).to_string_lossy().into_owned() };
   let addr_prefix = unsafe { CStr::from_ptr(addr_prefix).to_string_lossy().into_owned() };
 
-  let signing_key = SigningKey::new(unsafe { Box::from_raw(signing_key) });
-  let public_key: cosmrs::crypto::PublicKey = signing_key.public_key();
+  let public_key: cosmrs::crypto::PublicKey = cosmos_sk_wallet(sk.as_str()).public_key();
   let address = public_key.account_id(addr_prefix.as_str()).unwrap().to_string();
   CString::new(address.as_bytes()).unwrap().into_raw()
 }
 
 #[no_mangle]
 pub extern "C" fn protoss_cosmos_tx(
-  signing_key: *mut k256::ecdsa::SigningKey,
+  // phrase: *const c_char,
+  sk: *const c_char,
   account_number: u64, nonce: u64,
   fee_amount: *const c_char, fee_denom: *const c_char, gas: u64,
   body_bytes: *const c_char,
   chain_id: *const c_char
 ) -> *const c_char{
-  let signing_key = SigningKey::new(unsafe { Box::from_raw(signing_key) });
+  // let phrase = unsafe { CStr::from_ptr(phrase).to_string_lossy().into_owned() };
+  let sk = unsafe { CStr::from_ptr(sk).to_string_lossy().into_owned() };
   let fee_amount = unsafe { CStr::from_ptr(fee_amount).to_string_lossy().into_owned() };
   let fee_denom = unsafe { CStr::from_ptr(fee_denom).to_string_lossy().into_owned() };
   let body_bytes = unsafe { CStr::from_ptr(body_bytes) };
@@ -634,10 +635,9 @@ pub extern "C" fn protoss_cosmos_tx(
     denom: fee_denom.parse().unwrap(),
   };
   let sequence_number = nonce;
+  // let signing_key = cosmos_phrase_wallet(phrase.as_str());
+  let signing_key = cosmos_sk_wallet(sk.as_str());
   let auth_info = SignerInfo::single_direct(Some(signing_key.public_key()), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
-
-  // let by = body_bytes.to_bytes();
-  // eprintln!(">>> {by:?}");
 
 
   let sign_doc = SignDoc{
@@ -646,6 +646,7 @@ pub extern "C" fn protoss_cosmos_tx(
     account_number,
     chain_id
   };
+  // eprintln!("{sign_doc:?}");
   
   let buf = cosmj(sign_doc.sign(&signing_key).unwrap().to_bytes().unwrap()).unwrap();
   CString::new(buf).unwrap().into_raw()
