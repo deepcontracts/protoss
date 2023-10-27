@@ -615,6 +615,16 @@ pub extern "C" fn protoss_cosmos_sk_address(sk: *const c_char, addr_prefix: *con
 }
 
 #[no_mangle]
+pub extern "C" fn protoss_cosmos_phrase_address(phrase: *const c_char, addr_prefix: *const c_char) -> *const c_char {
+  let phrase = unsafe { CStr::from_ptr(phrase).to_string_lossy().into_owned() };
+  let addr_prefix = unsafe { CStr::from_ptr(addr_prefix).to_string_lossy().into_owned() };
+
+  let public_key: cosmrs::crypto::PublicKey = cosmos_phrase_wallet(phrase.as_str()).public_key();
+  let address = public_key.account_id(addr_prefix.as_str()).unwrap().to_string();
+  CString::new(address.as_bytes()).unwrap().into_raw()
+}
+
+#[no_mangle]
 pub extern "C" fn protoss_cosmos_tx(
   // phrase: *const c_char,
   sk: *const c_char,
