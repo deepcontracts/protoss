@@ -35,10 +35,11 @@ def any(type_url, msg):
 def tx_body(messages, memo = "nomemo", timeout_height = 4294967295): #4294967295 = MAX_INT32
     return cosmos.tx.v1beta1.tx_pb2.TxBody(messages = messages, memo = memo, timeout_height = timeout_height)
 
-def broadcast(sk, tx_body, account_number, account_sequence, fee_amount, fee_denom, chain_id, url, rpc_port="26657", gas_price = 100000000000):
-    tx=ffi.string(C.protoss_cosmos_tx(sk, int(account_number), int(account_sequence), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
+def send(tx, url, rpc_port="26657"):
     return json.loads(urllib.request.urlopen(urllib.request.Request(f"{url}:{rpc_port}", data=tx)).read())['result']['hash']
 
+def tx(sk, tx_body, account_number, account_sequence, fee_amount, fee_denom, chain_id, gas_price = 100000000000):
+    return ffi.string(C.protoss_cosmos_tx(sk, int(account_number), int(account_sequence), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
 
 def main():
     global C, ffi
