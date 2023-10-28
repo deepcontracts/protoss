@@ -99,47 +99,12 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
-    - name: Upload Release Assets
+    - name: Upload Protoss Py Asset
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: |
-          protoss/protoss-py-lib-linux_amd64.tar.gz
-          protoss/libprotoss-so-linux_amd64.tar.gz
-        asset_name: |
-          protoss-py-lib-linux_amd64.tar.gz
-          libprotoss-so-linux_amd64.tar.gz
+        asset_path: ./protoss/protoss-py-lib-linux_amd64.tar.gz
+        asset_name: protoss-py-lib-linux_amd64.tar.gz
         asset_content_type: application/gzip
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-    # - name: Create Release
-    #   id: create_release
-    #   uses: actions/create-release@v1
-    #   with:
-    #     files: |
-    #       protoss/protoss-py-lib-linux_amd64.tar.gz
-    #       protoss/libprotoss-so-linux_amd64.tar.gz
-    #     body: Protoss Release ${{ steps.tag.outputs.tag }}
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-    # - name: Upload Protoss Py Asset
-    #   uses: actions/upload-release-asset@v1
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: protoss/protoss-py-lib-linux_amd64.tar.gz
-    #     asset_name: protoss-py-lib-linux_amd64.tar.gz
-    #     asset_content_type: application/octet-stream
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
-
-    # - name: Upload libprotoss.so Asset
-    #   uses: actions/upload-release-asset@v1
-    #   with:
-    #     upload_url: ${{ steps.create_release.outputs.upload_url }}
-    #     asset_path: protoss/libprotoss-so-linux_amd64.tar.gz
-    #     asset_name: libprotoss-so-linux_amd64.tar.gz
-    #     asset_content_type: application/octet-stream
-    #   env:
-    #     GITHUB_TOKEN: ${{ secrets.TOKEN }}
