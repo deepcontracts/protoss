@@ -95,7 +95,6 @@ jobs:
         files: |
           protoss/protoss-py-lib-linux_amd64.tar.gz
           protoss/libprotoss-so-linux_amd64.tar.gz
-        title: Protoss Release ${{ steps.tag.outputs.tag }}
         body: Protoss Release ${{ steps.tag.outputs.tag }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
