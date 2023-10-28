@@ -92,11 +92,12 @@ jobs:
       uses: actions/create-release@v1
       with:
         tag_name: ${{ steps.tag.outputs.tag }}
-        token: ${{ secrets.GITHUB_TOKEN }}
         body: Protoss Release ${{ steps.tag.outputs.tag }}
         draft: false
         prerelease: false
         commitish: main
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Upload Release Assets
       uses: actions/upload-release-asset@v1
@@ -109,9 +110,8 @@ jobs:
           protoss-py-lib-linux_amd64.tar.gz
           libprotoss-so-linux_amd64.tar.gz
         asset_content_type: application/gzip
-
-      # env:
-      #   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     # - name: Create Release
     #   id: create_release
