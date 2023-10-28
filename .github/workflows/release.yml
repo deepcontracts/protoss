@@ -90,14 +90,14 @@ jobs:
 
     - name: Create Release
       id: create_release
-      uses: softprops/action-gh-release@v1
+      uses: actions/create-release@v1
       with:
         files: |
           protoss/protoss-py-lib-linux_amd64.tar.gz
           protoss/libprotoss-so-linux_amd64.tar.gz
         body: Protoss Release ${{ steps.tag.outputs.tag }}
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
     - name: Upload Protoss Py Asset
       uses: actions/upload-release-asset@v1
@@ -107,7 +107,7 @@ jobs:
         asset_name: protoss-py-lib-linux_amd64.tar.gz
         asset_content_type: application/octet-stream
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
 
     - name: Upload libprotoss.so Asset
       uses: actions/upload-release-asset@v1
@@ -117,4 +117,4 @@ jobs:
         asset_name: libprotoss-so-linux_amd64.tar.gz
         asset_content_type: application/octet-stream
       env:
-        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        GITHUB_TOKEN: ${{ secrets.TOKEN }}
