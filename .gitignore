@@ -14,3 +14,7 @@ Cargo.lock
 *.pdb
 
 /.cache
+/lib/py/cosmos
+/lib/py/cosmos_proto
+/lib/py/gogoproto
+/lib/py/google
