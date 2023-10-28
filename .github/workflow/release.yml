@@ -2,14 +2,20 @@ name: Protoss CI
 
 on:
   push:
-    tags: ['[0-9].[0-9].[0-9]']
+    # tags: ['[0-9].[0-9].[0-9]']
+    branches:
+      - release-ci
 
 jobs:
-  create_release:
+  protoss_release:
     name: Protoss Release
     runs-on: ubuntu-latest
 
     steps:
+    - name: Tag Version
+      id: tag
+      run: echo ::set-output name=tag::${GITHUB_REF#refs/tags/}
+
     - name: Checkout Code
       uses: actions/checkout@v2
 
@@ -74,3 +80,41 @@ jobs:
         cd protoss
         protoc -I../../tools/include -I../cosmos-sdk/proto -I../cosmos-proto/proto -I../gogoproto --python_out=lib/py/ gogoproto/gogo.proto cosmos/base/v1beta1/coin.proto cosmos_proto/cosmos.proto cosmos/tx/v1beta1/tx.proto google/protobuf/any.proto cosmos/crypto/multisig/v1beta1/multisig.proto cosmos/tx/signing/v1beta1/signing.proto cosmos/bank/v1beta1/tx.proto cosmos/bank/v1beta1/bank.proto cosmos/msg/v1/msg.proto
 
+    - name: Create Release Files
+      run: |
+        cd protoss
+        tar -czvf protoss-py-lib-linux_amd64.tar.gz lib/
+        tar -czvf libprotoss-so-linux_amd64.tar.gz target/debug/libprotoss.so
+
+
+    - name: Create Release
+      id: create_release
+      uses: softprops/action-gh-release@v1
+      with:
+        files: |
+          protoss/protoss-py-lib-linux_amd64.tar.gz
+          protoss/libprotoss-so-linux_amd64.tar.gz
+        title: Protoss Release Version ${{ steps.tag.outputs.tag }}
+        body: Protoss Release Version ${{ steps.tag.outputs.tag }}
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload Protoss Py Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: protoss/protoss-py-lib-linux_amd64.tar.gz
+        asset_name: protoss-py-lib-linux_amd64.tar.gz
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Upload libprotoss.so Asset
+      uses: actions/upload-release-asset@v1
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: protoss/libprotoss-so-linux_amd64.tar.gz
+        asset_name: libprotoss-so-linux_amd64.tar.gz
+        asset_content_type: application/octet-stream
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
