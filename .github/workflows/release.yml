@@ -84,7 +84,7 @@ jobs:
     - name: Create Release Files
       run: |
         cd protoss
-        tar -czvf protoss-py-lib-linux_amd64.tar.gz lib/
+        tar -czvf protoss-py-lib.tar.gz lib/
         tar -czvf libprotoss-so-linux_amd64.tar.gz target/debug/libprotoss.so
 
     - name: Create Release
@@ -103,8 +103,8 @@ jobs:
       uses: actions/upload-release-asset@v1
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ./protoss/protoss-py-lib-linux_amd64.tar.gz
-        asset_name: protoss-py-lib-linux_amd64.tar.gz
+        asset_path: ./protoss/protoss-py-lib.tar.gz
+        asset_name: protoss-py-lib-${{ steps.tag.outputs.tag }}.tar.gz
         asset_content_type: application/gzip
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
@@ -114,7 +114,7 @@ jobs:
       with:
         upload_url: ${{ steps.create_release.outputs.upload_url }}
         asset_path: ./protoss/libprotoss-so-linux_amd64.tar.gz
-        asset_name: libprotoss-so-linux_amd64.tar.gz
+        asset_name: libprotoss-so-${{ steps.tag.outputs.tag }}-linux_amd64.tar.gz
         asset_content_type: application/gzip
       env:
         GITHUB_TOKEN: ${{ secrets.TOKEN }}
