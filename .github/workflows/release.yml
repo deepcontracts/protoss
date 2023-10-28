@@ -2,9 +2,9 @@ name: Protoss CI
 
 on:
   push:
-    # tags: ['[0-9].[0-9].[0-9]']
-    branches:
-      - release-ci
+    tags:
+      - 'v*'  # Release (e.g, v0.0.0)
+      - 'v*-rc.*'  # Release Candidate (e.g, v0.0.0-rc.1)
 
 jobs:
   protoss_release:
@@ -95,8 +95,8 @@ jobs:
         files: |
           protoss/protoss-py-lib-linux_amd64.tar.gz
           protoss/libprotoss-so-linux_amd64.tar.gz
-        title: Protoss Release Version ${{ steps.tag.outputs.tag }}
-        body: Protoss Release Version ${{ steps.tag.outputs.tag }}
+        title: Protoss Release ${{ steps.tag.outputs.tag }}
+        body: Protoss Release ${{ steps.tag.outputs.tag }}
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
