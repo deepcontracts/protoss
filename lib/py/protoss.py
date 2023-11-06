@@ -26,6 +26,11 @@ def faucet(origin_phrase, origin_addr_prefix, to_address, amount, denom, chain_i
     tx=ffi.string(C.protoss_cosmos_send_phrase(phrase, int(account_info['sequence']), addr_prefix, c(to_address), c(amount), c(denom), c(chain_id)))
     return json.loads(urllib.request.urlopen(urllib.request.Request(f"{url}:{rpc_port}", data=tx)).read())['result']['hash']
 
+def phrase_address(origin_phrase, origin_addr_prefix):
+    phrase = c(origin_phrase)
+    addr_prefix = c(origin_addr_prefix)
+    return p(C.protoss_cosmos_phrase_address(phrase, addr_prefix))
+
 def get_account_info(address, url, rest_port="1317"):
     return json.loads(urllib.request.urlopen(f"{url}:{rest_port}/cosmos/auth/v1beta1/accounts/{address}").read())['account'] 
 

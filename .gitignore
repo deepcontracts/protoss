@@ -18,3 +18,5 @@ Cargo.lock
 /lib/py/cosmos_proto
 /lib/py/gogoproto
 /lib/py/google
+.env
+LOCAL.md
