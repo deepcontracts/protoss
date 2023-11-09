@@ -20,7 +20,7 @@ def main():
     (sk, sender) = protoss.new_account(addr_prefix)
     
     tx_hash = protoss.faucet(funder_phrase, addr_prefix, sender, "1000000000", denom, chain_id, url)
-    print(tx_hash, file=sys.stderr)
+    print(f"load_test_sim faucet: {tx_hash}", file=sys.stderr)
     
     time.sleep(5)
 
