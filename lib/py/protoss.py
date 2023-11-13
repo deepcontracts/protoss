@@ -26,6 +26,11 @@ def faucet(origin_phrase, origin_addr_prefix, to_address, amount, denom, chain_i
     tx=ffi.string(C.protoss_cosmos_send_phrase(phrase, int(account_info['sequence']), addr_prefix, c(to_address), c(amount), c(denom), c(chain_id)))
     return json.loads(urllib.request.urlopen(urllib.request.Request(f"{url}:{rpc_port}", data=tx)).read())['result']['hash']
 
+def phrase_address(origin_phrase, origin_addr_prefix):
+    phrase = c(origin_phrase)
+    addr_prefix = c(origin_addr_prefix)
+    return p(C.protoss_cosmos_phrase_address(phrase, addr_prefix))
+
 def get_account_info(address, url, rest_port="1317"):
     return json.loads(urllib.request.urlopen(f"{url}:{rest_port}/cosmos/auth/v1beta1/accounts/{address}").read())['account'] 
 
@@ -35,10 +40,11 @@ def any(type_url, msg):
 def tx_body(messages, memo = "nomemo", timeout_height = 4294967295): #4294967295 = MAX_INT32
     return cosmos.tx.v1beta1.tx_pb2.TxBody(messages = messages, memo = memo, timeout_height = timeout_height)
 
-def broadcast(sk, tx_body, account_number, account_sequence, fee_amount, fee_denom, chain_id, url, rpc_port="26657", gas_price = 100000000000):
-    tx=ffi.string(C.protoss_cosmos_tx(sk, int(account_number), int(account_sequence), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
+def send(tx, url, rpc_port="26657"):
     return json.loads(urllib.request.urlopen(urllib.request.Request(f"{url}:{rpc_port}", data=tx)).read())['result']['hash']
 
+def tx(sk, tx_body, account_number, account_sequence, fee_amount, fee_denom, chain_id, gas_price = 100000000000):
+    return ffi.string(C.protoss_cosmos_tx(sk, int(account_number), int(account_sequence), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
 
 def main():
     global C, ffi

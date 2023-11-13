@@ -35,7 +35,7 @@ def main():
 
     account_info = protoss.get_account_info(sender, url)
 
-    tx_hash = protoss.broadcast(sk, tx_body, account_info['account_number'], account_info['sequence'], "100000", "atom", chain_id, url)
+    tx_hash = protoss.send(protoss.tx(sk, tx_body, account_info['account_number'], account_info['sequence'], "100000", "atom", chain_id), url)
     print(tx_hash)
 
 
