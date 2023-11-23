@@ -531,36 +531,6 @@ pub extern "C" fn protoss_cosmos_send_phrase(
   CString::new(buf).unwrap().into_raw()
 }
 
-#[no_mangle]
-pub extern "C" fn protoss_cosmos_send_sk(
-  sk: *const c_char,
-  nonce: u64,
-  addr_prefix: *const c_char,
-  to_address: *const c_char,
-  amount: *const c_char,
-  denom: *const c_char,
-  // next_id: u64,
-  chain_id: u64
-) -> *const c_char {
-//   let signing_key_bin = unsafe { slice::from_raw_parts(signing_key_bin,5) };
-//   let signing_key = cosmrs::crypto::secp256k1::SigningKey::from_slice(signing_key_bin).unwrap();
-  let sk = unsafe { CStr::from_ptr(sk).to_string_lossy().into_owned() };
-  let addr_prefix = unsafe { CStr::from_ptr(addr_prefix).to_string_lossy().into_owned() };
-  let to_address = unsafe { CStr::from_ptr(to_address).to_string_lossy().into_owned() };
-  let amount = unsafe { CStr::from_ptr(amount).to_string_lossy().into_owned() };
-  let denom = unsafe { CStr::from_ptr(denom).to_string_lossy().into_owned() };
-  eprintln!("received {}", nonce);
-
-  let gas =  100_000_000_000u64;
-  let memo = "nomemo";
-  let timeout_height = u32::MAX;
-
-  let signing_key = cosmos_sk_wallet(sk.as_str());
-
-  let buf = cosmos_send(0,nonce, gas, timeout_height, memo,
-    &signing_key, addr_prefix.as_str(),to_address.as_str(), amount.as_str(), denom.as_str(), format!("{chain_id}").as_str()).unwrap();
-  CString::new(buf).unwrap().into_raw()
-}
 
 #[no_mangle]
 pub extern "C" fn protoss_cosmos_transfer_phrase(
@@ -645,7 +615,6 @@ pub extern "C" fn protoss_cosmos_tx(
     denom: fee_denom.parse().unwrap(),
   };
   let sequence_number = nonce;
-  // let signing_key = cosmos_phrase_wallet(phrase.as_str());
   let signing_key = cosmos_sk_wallet(sk.as_str());
   let auth_info = SignerInfo::single_direct(Some(signing_key.public_key()), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
 
@@ -662,6 +631,41 @@ pub extern "C" fn protoss_cosmos_tx(
   CString::new(buf).unwrap().into_raw()
 }
 
+
+#[no_mangle]
+pub extern "C" fn protoss_cosmos_ptx(
+  phrase: *const c_char,
+  account_number: u64, nonce: u64,
+  fee_amount: *const c_char, fee_denom: *const c_char, gas: u64,
+  body_bytes: *const c_char,
+  chain_id: *const c_char
+) -> *const c_char{
+  let phrase = unsafe { CStr::from_ptr(phrase).to_string_lossy().into_owned() };
+  let fee_amount = unsafe { CStr::from_ptr(fee_amount).to_string_lossy().into_owned() };
+  let fee_denom = unsafe { CStr::from_ptr(fee_denom).to_string_lossy().into_owned() };
+  let body_bytes = unsafe { CStr::from_ptr(body_bytes) };
+  let chain_id = unsafe { CStr::from_ptr(chain_id).to_string_lossy().into_owned() };
+  
+  let amount = Coin {
+    amount: fee_amount.parse().unwrap(),
+    denom: fee_denom.parse().unwrap(),
+  };
+  let sequence_number = nonce;
+  let signing_key = cosmos_phrase_wallet(phrase.as_str());
+  let auth_info = SignerInfo::single_direct(Some(signing_key.public_key()), sequence_number).auth_info(Fee::from_amount_and_gas(amount, gas));
+
+
+  let sign_doc = SignDoc{
+    body_bytes: body_bytes.to_bytes().to_vec(),
+    auth_info_bytes:  auth_info.into_bytes().unwrap(),
+    account_number,
+    chain_id
+  };
+  // eprintln!("{sign_doc:?}");
+  
+  let buf = cosmj(sign_doc.sign(&signing_key).unwrap().to_bytes().unwrap()).unwrap();
+  CString::new(buf).unwrap().into_raw()
+}
 
 #[derive(Serialize, Deserialize, Debug)]
 /// A JSON-RPC request

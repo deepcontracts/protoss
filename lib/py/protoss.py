@@ -46,6 +46,20 @@ def send(tx, url, rpc_port="26657"):
 def tx(sk, tx_body, account_number, account_sequence, fee_amount, fee_denom, chain_id, gas_price = 100000000000):
     return ffi.string(C.protoss_cosmos_tx(sk, int(account_number), int(account_sequence), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
 
+## note: passing addr_prefix here could eliminate address
+def address_tx(address, sk, tx_body, fee_amount, fee_denom, chain_id, url, rest_port="1317", gas_price = 100000000000):
+    account_info = get_account_info(address, url)
+    return ffi.string(C.protoss_cosmos_tx(sk, int(account_info['account_number']), int(account_info['sequence']), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
+
+def phrase_tx(phrase, addr_prefix, tx_body, fee_amount, fee_denom, chain_id, url, rest_port="1317", gas_price = 100000000000):
+    account_info = get_account_info(phrase_address(phrase, addr_prefix), url)
+    return ffi.string(C.protoss_cosmos_ptx(phrase, int(account_info['account_number']), int(account_info['sequence']), c(fee_amount), c(fee_denom), gas_price, tx_body.SerializeToString(), c(chain_id)))
+
+def new_funded(funder_phrase, addr_prefix, amount, denom, chain_id, url):
+    (sk, sender) = new_account(addr_prefix)
+    tx_hash = faucet(funder_phrase, addr_prefix, sender, amount, denom, chain_id, url)
+    return f"{sender}#{sk}#{tx_hash}"
+
 def main():
     global C, ffi
     ffi = FFI()
@@ -56,6 +70,7 @@ def main():
         const char * protoss_cosmos_sk_address(const char *sk, const char *addr_prefix);
         const char * protoss_cosmos_phrase_address(const char *phrase, const char *addr_prefix);
         const char * protoss_cosmos_tx(const char *sk, long account_number, long nonce, const char *fee_amount, const char *fee_denom, long gas, const char *body_bytes, const char *chain_id);
+        const char * protoss_cosmos_ptx(const char *phrase, long account_number, long nonce, const char *fee_amount, const char *fee_denom, long gas, const char *body_bytes, const char *chain_id);
         """)
 
 main()
