@@ -688,6 +688,10 @@ fn is_zst<T>(_t: &T) -> bool {
   std::mem::size_of::<T>() == 0
 }
 
+#[no_mangle]
+pub extern "C" fn protoss_uuid4() -> *const c_char {
+  CString::new(uuid::Uuid::new_v4().as_bytes()).unwrap().into_raw()
+}
 
 // #[no_mangle]
 // pub extern "C" fn cosmos_get_account_info(
